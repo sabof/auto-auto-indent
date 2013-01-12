@@ -17,7 +17,7 @@ or
          'es-aai-indent-forward)
 
 depending on whether the language has small and clearly identifiable functions,
-that `beginning-of-defun' and `end-of-defun' can find.
+that `beginning-of-defun` and `end-of-defun` can find.
 
 If on the other hand you don't trust the mode at all, but like the cursor
 correction and delete-char behaviour, you can add:
@@ -26,7 +26,7 @@ correction and delete-char behaviour, you can add:
           'es-aai-after-change-indentation) nil)
 
 if the mode indents well in all but a few cases, you can change the
-`es-aai-indentable-line-p-function'. This is what I have in my php mode setup:
+`es-aai-indentable-line-p-function`. This is what I have in my php mode setup:
 
     (set (make-local-variable
           'es-aai-indentable-line-p-function)
