@@ -296,7 +296,8 @@ Otherwise call `es-aai-indent-forward'."
   (es-aai--minor-mode-setup)
   (es-aai--major-mode-setup))
 
-(define-minor-mode es-aai-mode
+;;;###autoload
+(define-minor-mode es-auto-auto-indent-mode
     "Automatic automatic indentation.
 Works pretty well for lisp out of the box.
 Other modes might need some tweaking to set up:
@@ -335,8 +336,8 @@ if the mode indents well in all but a few cases, you can change the
   (if es-aai-mode
       (es-aai--init)))
 
-(defalias 'es-auto-auto-indent-mode 'es-aai-mode)
-(defvaralias 'es-auto-auto-indent-mode 'es-aai-mode)
+(defalias 'es-aai-mode 'es-auto-auto-indent-mode)
+(defvaralias 'es-aai-mode 'es-auto-auto-indent-mode)
 
 (provide 'es-auto-auto-indent)
 
