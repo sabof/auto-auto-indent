@@ -263,7 +263,7 @@ Otherwise call `es-aai-indent-forward'."
   (eval-after-load "multiple-cursors-core"
     '(pushnew 'es-aai-mode mc/unsupported-minor-modes))
   (eval-after-load "paredit"
-    '(es-define-keys es-aai-mode-map
+    '(es-define-keys es-auto-auto-indent-mode-map
       [remap paredit-forward-delete] 'es-aai-delete-char
       [remap paredit-backward-delete] 'es-aai-backspace))
   (eval-after-load "cua-base"
@@ -280,9 +280,9 @@ Otherwise call `es-aai-indent-forward'."
   (add-hook 'post-command-hook 'es-aai-post-command-hook t t)
   (pushnew 'es-aai-before-change-function before-change-functions)
   (when cua-mode
-    (es-define-keys es-aai-mode-map
+    (es-define-keys es-auto-auto-indent-mode-map
       (kbd "C-v") 'es-aai-indented-yank))
-  (es-define-keys es-aai-mode-map
+  (es-define-keys es-auto-auto-indent-mode-map
     [mouse-2] 'es-aai-mouse-yank
     [remap yank] 'es-aai-indented-yank
     [remap newline] 'es-aai-newline-and-indent
