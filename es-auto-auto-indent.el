@@ -339,4 +339,5 @@ if the mode indents well in all but a few cases, you can change the
 (defvaralias 'es-auto-auto-indent-mode 'es-aai-mode)
 
 (provide 'es-auto-auto-indent)
+
 ;;; es-auto-auto-indent.el ends here
