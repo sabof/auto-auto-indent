@@ -1,5 +1,39 @@
+;;; es-auto-auto-indent.el --- Indents code as you type
+;;; Version: 0.1
+;;; Author: sabof
+;;; URL: https://github.com/sabof/es-auto-auto-indent
+;;; Package-Requires: ((es-lib "0.1"))
+
+;;; Commentary:
+
+;; The project is hosted at https://github.com/sabof/es-auto-auto-indent
+;; The latest version, and all the relevant information can be found there.
+
+;;; License:
+
+;; This file is NOT part of GNU Emacs.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program ; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
+
+(require 'es-lib)
+
 (defvar es-aai-indent-function 'es-aai-indent-line-maybe
-  "Function to call after ever change, when")
+  "Indentation function to use call for automatic indentation.")
 (defvar es-aai-indentable-line-p-function (es-constantly t)
   "For mode-specifc cusomizations.")
 (defvar es-aai-after-change-indentation t
@@ -211,8 +245,7 @@ Otherwise call `es-aai-indent-forward'."
                                   undo-tree-redo
                                   quoted-insert
                                   backward-paragraph
-                                  self-insert-command))))
-                 )
+                                  self-insert-command)))))
         (funcall es-aai-indent-function)))
     (setq es-aai--change-flag nil)))
 
@@ -302,7 +335,8 @@ if the mode indents well in all but a few cases, you can change the
   (if es-aai-mode
       (es-aai--init)))
 
-(defalias 'es-aa-indent-mode 'es-aai-mode)
-(defvaralias 'es-aa-indent-mode 'es-aai-mode)
+(defalias 'es-auto-auto-indent-mode 'es-aai-mode)
+(defvaralias 'es-auto-auto-indent-mode 'es-aai-mode)
 
-(provide 'es-lib-aa-indent)
+(provide 'es-auto-auto-indent)
+;;; es-auto-auto-indent.el ends here
