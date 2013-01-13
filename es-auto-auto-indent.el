@@ -221,7 +221,9 @@ Otherwise call `es-aai-indent-forward'."
                 (or last-input-structural
                     (not (eq last-command 'self-insert-command))))))
     ;; Correct position
-    (when (and (not (region-active-p)))
+    (when (or (not (region-active-p))
+              (= (region-beginning)
+                 (region-end)))
       (when (and (es-neither (bound-and-true-p cua--rectangle)
                              (bound-and-true-p multiple-cursors-mode))
                  (> (es-indentation-end-pos) (point)))
