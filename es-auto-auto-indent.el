@@ -285,6 +285,7 @@ Otherwise call `es-aai-indent-forward'."
   (es-define-keys es-auto-auto-indent-mode-map
     [mouse-2] 'es-aai-mouse-yank
     [remap yank] 'es-aai-indented-yank
+    [remap cua-paste] 'es-aai-indented-yank
     [remap newline] 'es-aai-newline-and-indent
     [remap open-line] 'es-aai-open-line
     [remap delete-char] 'es-aai-delete-char
