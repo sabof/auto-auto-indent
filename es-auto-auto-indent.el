@@ -53,16 +53,15 @@ All indentation happends through this function."
   (when (and es-aai-mode
              (not (eq indent-line-function 'insert-tab))
              (funcall es-aai-indentable-line-p-function))
-    (indent-according-to-mode)
-    (es-aai-correct-position-this)))
+    (ignore-errors
+      (indent-according-to-mode))))
 
 (defun es-aai-indent-forward ()
   "Indent current line, and \(1- `es-aai-indent-limit'\) lines afterwards."
   (save-excursion
     (loop repeat es-aai-indent-limit do
           (es-aai-indent-line-maybe)
-          (forward-line)))
-  (es-aai-correct-position-this))
+          (forward-line))))
 
 (defun* es-aai--indent-region (start end)
   "Indent region lines where `es-aai-indentable-line-p-function' returns non-nil."
@@ -93,8 +92,7 @@ Otherwise call `es-aai-indent-forward'."
           (setq end-pos (point))
           (goto-char init-pos)
           (es-aai--indent-region init-pos end-pos))
-      (error (es-aai-indent-forward)))
-    (es-aai-correct-position-this)))
+      (error (es-aai-indent-forward)))))
 
 (defun es-aai-indented-yank (&optional dont-indent)
   (interactive)
@@ -250,7 +248,8 @@ Otherwise call `es-aai-indent-forward'."
                                   quoted-insert
                                   backward-paragraph
                                   self-insert-command)))))
-        (funcall es-aai-indent-function)))
+        (funcall es-aai-indent-function)
+        (es-aai-correct-position-this)))
     (setq es-aai--change-flag nil)))
 
 (defun es-aai--major-mode-setup ()
