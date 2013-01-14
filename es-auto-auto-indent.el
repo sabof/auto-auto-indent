@@ -53,14 +53,16 @@ All indentation happends through this function."
   (when (and es-aai-mode
              (not (eq indent-line-function 'insert-tab))
              (funcall es-aai-indentable-line-p-function))
-    (indent-according-to-mode)))
+    (indent-according-to-mode)
+    (es-aai-correct-position-this)))
 
 (defun es-aai-indent-forward ()
   "Indent current line, and \(1- `es-aai-indent-limit'\) lines afterwards."
   (save-excursion
     (loop repeat es-aai-indent-limit do
           (es-aai-indent-line-maybe)
-          (forward-line))))
+          (forward-line)))
+  (es-aai-correct-position-this))
 
 (defun* es-aai--indent-region (start end)
   "Indent region lines where `es-aai-indentable-line-p-function' returns non-nil."
