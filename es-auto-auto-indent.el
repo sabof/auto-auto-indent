@@ -39,7 +39,7 @@
 (defvar es-aai-after-change-indentation t
   "Whether to reindent after every change.
 Useful when you want to keep the keymap and cursor repositioning.")
-(defvar es-aai-indent-limit 20
+(defvar es-aai-indent-limit 30
   "Maximum number of lines for after-change indentation.")
 (defvar es-aai-indented-yank-limit 4000
   "Maximum number of character to indent for `es-aai-indented-yank'")
@@ -51,7 +51,8 @@ Useful when you want to keep the keymap and cursor repositioning.")
   "\(indent-according-to-mode\) when `es-aai-indentable-line-p-function' returns non-nil.
 All indentation happends through this function."
   (when (and es-aai-mode
-             (not (eq indent-line-function 'insert-tab))
+             (not (memq indent-line-function
+                        '(insert-tab indent-relative)))
              (funcall es-aai-indentable-line-p-function))
     (ignore-errors
       (indent-according-to-mode))))
@@ -62,6 +63,11 @@ All indentation happends through this function."
     (loop repeat es-aai-indent-limit do
           (es-aai-indent-line-maybe)
           (forward-line))))
+
+(defun es-aai-widened-linum (&optional pos)
+  (save-restriction
+    (widen)
+    (line-number-at-pos pos)))
 
 (defun* es-aai--indent-region (start end)
   "Indent region lines where `es-aai-indentable-line-p-function' returns non-nil."
@@ -90,7 +96,6 @@ Otherwise call `es-aai-indent-forward'."
                    es-aai-indent-limit)
             (error "defun too long"))
           (setq end-pos (point))
-          (goto-char init-pos)
           (es-aai--indent-region init-pos end-pos))
       (error (es-aai-indent-forward)))))
 
@@ -105,15 +110,18 @@ Otherwise call `es-aai-indent-forward'."
           line)
       (yank)
       (setq end-distance (- (line-end-position) (point))
-            line (line-number-at-pos))
+            line (es-aai-widened-linum))
       (unless (or dont-indent
                   (> (- (point) starting-point)
                      es-aai-indented-yank-limit))
         (es-aai--indent-region starting-point (point)))
-      ;; (when (bound-and-true-p font-lock-mode)
-      ;;   (font-lock-fontify-region starting-point (point)))
+      ;; Necessary for web-mode. Possibly others
+      (when (bound-and-true-p font-lock-mode)
+        (font-lock-fontify-region starting-point (point)))
       (goto-line line)
-      (goto-char (- (line-end-position) end-distance)))))
+      (goto-char (max (es-indentation-end-pos)
+                      (- (line-end-position) end-distance)))
+      )))
 
 (defun es-aai-mouse-yank (event &optional dont-indent)
   (interactive "e")
@@ -189,7 +197,8 @@ Otherwise call `es-aai-indent-forward'."
       (es-aai-indent-line-maybe))
     (return-from es-aai-newline-and-indent))
   (when (region-active-p)
-    (delete-region (point) (mark)))
+    (delete-region (point) (mark))
+    (deactivate-mark))
   (newline)
   (es-aai-indent-line-maybe)
   (when (memq major-mode '(nxml-mode web-mode))
@@ -344,5 +353,4 @@ if the mode indents well in all but a few cases, you can change the
 (defvaralias 'es-aai-mode 'es-auto-auto-indent-mode)
 
 (provide 'es-auto-auto-indent)
-
-;;; es-auto-auto-indent.el ends here
+;; es-auto-auto-indent.el ends here
