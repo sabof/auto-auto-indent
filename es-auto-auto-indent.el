@@ -175,12 +175,12 @@ Otherwise call `es-aai-indent-forward'."
 (defun es-aai-open-line ()
   "Open line, and indent the following."
   (interactive)
-  (let ((was-at-eol (>= (point) (es-visible-end-of-line))))
-    (save-excursion
-      (newline))
-    (save-excursion
-      (forward-char)
-      (es-aai-indent-line-maybe))))
+  (save-excursion
+    (newline))
+  (save-excursion
+    (forward-char)
+    (es-aai-indent-line-maybe))
+  (es-aai-indent-line-maybe))
 
 (defun* es-aai-newline-and-indent ()
   (interactive)
@@ -272,20 +272,20 @@ Otherwise call `es-aai-indent-forward'."
 
 (defun es-aai--minor-mode-setup ()
   "Change interacting minor modes."
-  (eval-after-load "multiple-cursors-core"
+  (eval-after-load 'multiple-cursors-core
     '(pushnew 'es-aai-mode mc/unsupported-minor-modes))
-  (eval-after-load "paredit"
+  (eval-after-load 'paredit
     '(es-define-keys es-auto-auto-indent-mode-map
       [remap paredit-forward-delete] 'es-aai-delete-char
       [remap paredit-backward-delete] 'es-aai-backspace))
-  (eval-after-load "cua-base"
+  (eval-after-load 'cua-base
     '(define-key cua--region-keymap [remap delete-char]
       (lambda ()
         (interactive)
         (if es-aai-mode
             (es-aai-delete-char)
             (cua-delete-region)))))
-  (eval-after-load "eldoc"
+  (eval-after-load 'eldoc
     '(eldoc-add-command 'es-aai-indented-yank)))
 
 (defun es-aai--init ()
