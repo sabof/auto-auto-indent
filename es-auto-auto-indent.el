@@ -127,7 +127,7 @@ Otherwise call `es-aai-indent-forward'."
       (goto-line line)
       (goto-char (max (es-indentation-end-pos)
                       (- (line-end-position) end-distance)))
-      )))
+      (set-marker (mark-marker) starting-point (current-buffer)))))
 
 (defun es-aai-mouse-yank (event &optional dont-indent)
   (interactive "e")
@@ -259,7 +259,7 @@ Otherwise call `es-aai-indent-forward'."
                                           undo
                                           undo-tree-undo
                                           undo-tree-redo)
-                                 es-aai-dont-indent-commands)))))
+                                        es-aai-dont-indent-commands)))))
         (funcall es-aai-indent-function)
         (es-aai-correct-position-this)))
     (setq es-aai--change-flag nil)))
