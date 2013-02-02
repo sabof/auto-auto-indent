@@ -43,6 +43,12 @@ Useful when you want to keep the keymap and cursor repositioning.")
   "Maximum number of lines for after-change indentation.")
 (defvar es-aai-indented-yank-limit 4000
   "Maximum number of character to indent for `es-aai-indented-yank'")
+(defvar es-aai-dont-indent-commands
+  '(delete-horizontal-space
+    quoted-insert
+    backward-paragraph
+    self-insert-command)
+  "Commands after which not to indent.")
 
 (es-define-buffer-local-vars
  es-aai--change-flag nil)
@@ -249,14 +255,11 @@ Otherwise call `es-aai-indent-forward'."
                  (buffer-modified-p)
                  (or first-keystroke
                      (not (memq this-command
-                                '(save-buffer
-                                  delete-horizontal-space
-                                  undo
-                                  undo-tree-undo
-                                  undo-tree-redo
-                                  quoted-insert
-                                  backward-paragraph
-                                  self-insert-command)))))
+                                (append '(save-buffer
+                                          undo
+                                          undo-tree-undo
+                                          undo-tree-redo)
+                                 es-aai-dont-indent-commands)))))
         (funcall es-aai-indent-function)
         (es-aai-correct-position-this)))
     (setq es-aai--change-flag nil)))
