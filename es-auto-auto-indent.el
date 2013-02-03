@@ -122,7 +122,8 @@ Otherwise call `es-aai-indent-forward'."
                      es-aai-indented-yank-limit))
         (es-aai--indent-region starting-point (point)))
       ;; Necessary for web-mode. Possibly others
-      (when (bound-and-true-p font-lock-mode)
+      (when (and (bound-and-true-p font-lock-mode)
+                 (not (eq major-mode 'org-mode)))
         (font-lock-fontify-region starting-point (point)))
       (goto-line line)
       (goto-char (max (es-indentation-end-pos)
