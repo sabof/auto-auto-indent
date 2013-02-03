@@ -128,6 +128,10 @@ Otherwise call `es-aai-indent-forward'."
       (goto-line line)
       (goto-char (max (es-indentation-end-pos)
                       (- (line-end-position) end-distance)))
+      (when (derived-mode-p 'comint-mode)
+        (let ((point (point)))
+          (skip-chars-backward " \t\n")
+          (delete-region (point) point)))
       (set-marker (mark-marker) starting-point (current-buffer)))))
 
 (defun es-aai-mouse-yank (event &optional dont-indent)
