@@ -130,7 +130,7 @@ Otherwise call `es-aai-indent-forward'."
                       (- (line-end-position) end-distance)))
       (when (derived-mode-p 'comint-mode)
         (let ((point (point)))
-          (skip-chars-backward " \t\n")
+          (skip-chars-backward " \t\n" (marker-position (mark-marker)))
           (delete-region (point) point)))
       (set-marker (mark-marker) starting-point (current-buffer)))))
 
