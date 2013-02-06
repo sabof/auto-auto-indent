@@ -130,7 +130,7 @@ Otherwise call `es-aai-indent-forward'."
                       (- (line-end-position) end-distance)))
       (when (derived-mode-p 'comint-mode)
         (let ((point (point)))
-          (skip-chars-backward " \t\n" (marker-position (mark-marker)))
+          (skip-chars-backward " \t\n" starting-point)
           (delete-region (point) point)))
       (set-marker (mark-marker) starting-point (current-buffer)))))
 
@@ -242,8 +242,10 @@ Otherwise call `es-aai-indent-forward'."
                     (not (eq last-command 'self-insert-command))))))
     ;; Correct position
     (when (or (not (region-active-p))
-              (= (region-beginning)
-                 (region-end)))
+              deactivate-mark
+              ;; (= (region-beginning)
+              ;;    (region-end))
+              )
       (when (and (es-neither (bound-and-true-p cua--rectangle)
                              (bound-and-true-p multiple-cursors-mode))
                  (> (es-indentation-end-pos) (point)))
