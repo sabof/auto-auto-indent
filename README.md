@@ -1,5 +1,5 @@
 # es-auto-auto-indent
-Automatic automatic indentation.
+Automatic automatic indentation - a mode that indents code as you type.
 
 Works pretty well for lisp out of the box.
 
