@@ -47,6 +47,7 @@ Useful when you want to keep the keymap and cursor repositioning.")
   '(delete-horizontal-space
     quoted-insert
     backward-paragraph
+    kill-region
     self-insert-command)
   "Commands after which not to indent.")
 
