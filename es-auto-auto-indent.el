@@ -50,6 +50,7 @@ Useful when you want to keep the keymap and cursor repositioning.")
     kill-region
     self-insert-command)
   "Commands after which not to indent.")
+(defvar es-aai-mode-hook nil)
 
 (es-define-buffer-local-vars
  es-aai--change-flag nil)
@@ -195,6 +196,7 @@ Otherwise call `es-aai-indent-forward'."
   (es-aai-indent-line-maybe))
 
 (defun* es-aai-newline-and-indent ()
+  ;; This function won't run when cua--region-map is active
   (interactive)
   ;; For c-like languages
   (when (and (not (region-active-p))
@@ -300,6 +302,7 @@ Otherwise call `es-aai-indent-forward'."
     '(eldoc-add-command 'es-aai-indented-yank)))
 
 (defun es-aai--init ()
+  (run-hooks 'es-aai-mode-hook)
   (add-hook 'post-command-hook 'es-aai-post-command-hook t t)
   (pushnew 'es-aai-before-change-function before-change-functions)
   (when cua-mode
