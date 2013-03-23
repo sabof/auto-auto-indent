@@ -124,9 +124,9 @@ Otherwise call `es-aai-indent-forward'."
                      es-aai-indented-yank-limit))
         (es-aai--indent-region starting-point (point)))
       ;; Necessary for web-mode. Possibly others
-      (when (and (bound-and-true-p font-lock-mode)
-                 (memq major-mode '(web-mode)))
-        (font-lock-fontify-region starting-point (point)))
+      ;; (when (and (bound-and-true-p font-lock-mode)
+      ;;            (memq major-mode '(web-mode)))
+      ;;   (font-lock-fontify-region starting-point (point)))
       (goto-line line)
       (goto-char (max (es-indentation-end-pos)
                       (- (line-end-position) end-distance)))
@@ -166,7 +166,8 @@ Otherwise call `es-aai-indent-forward'."
             (when (and (es-fixup-whitespace)
                        (not from-backspace))
               (backward-char)))
-          (delete-char 1))))
+          (delete-char 1))
+      (es-aai-indent-line-maybe)))
 
 (defun es-aai-backspace ()
   "Like `backward-delete-char', but removes the resulting gap when point is at EOL."
@@ -233,7 +234,8 @@ Otherwise call `es-aai-indent-forward'."
 
 (defun* es-aai-post-command-hook ()
   "Correct the cursor, and possibly indent."
-  (unless es-aai-mode
+  (when (or (not es-aai-mode)
+            cua--rectangle)
     (return-from es-aai-post-command-hook))
   (let* (( last-input-structural
            (member last-input-event
