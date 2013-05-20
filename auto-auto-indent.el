@@ -52,6 +52,10 @@ Useful when you want to keep the keymap and cursor repositioning.")
     self-insert-command)
   "Commands after which not to indent.")
 (defvar aai-mode-hook nil)
+(defvar aai-timer nil)
+(defvar aai-timer-delay nil
+  "When set to a number, indent after this ammout of time, after a sequence of
+self-insert commands.")
 
 (es-define-buffer-local-vars
  aai--change-flag nil)
@@ -69,24 +73,24 @@ All indentation happends through this function."
 (defun aai-indent-forward ()
   "Indent current line, and \(1- `aai-indent-limit'\) lines afterwards."
   (save-excursion
-    (loop repeat aai-indent-limit do
-          (aai-indent-line-maybe)
-          (forward-line))))
+    (cl-loop repeat aai-indent-limit do
+             (aai-indent-line-maybe)
+             (forward-line))))
 
 (defun aai-widened-linum (&optional pos)
   (save-restriction
     (widen)
     (line-number-at-pos pos)))
 
-(defun* aai--indent-region (start end)
+(cl-defun aai--indent-region (start end)
   "Indent region lines where `aai-indentable-line-p-function' returns non-nil."
   (save-excursion
     (let ((end-line (line-number-at-pos end)))
       (goto-char start)
       (while (<= (line-number-at-pos) end-line)
         (aai-indent-line-maybe)
-        (when (plusp (forward-line))
-          (return-from aai--indent-region))))))
+        (when (cl-plusp (forward-line))
+          (cl-return-from aai--indent-region))))))
 
 (defun aai-indent-defun ()
   "Indent current defun, if it is smaller than `aai-indent-limit'.
@@ -197,7 +201,7 @@ Otherwise call `aai-indent-forward'."
     (aai-indent-line-maybe))
   (aai-indent-line-maybe))
 
-(defun* aai-newline-and-indent ()
+(cl-defun aai-newline-and-indent ()
   ;; This function won't run when cua--region-map is active
   (interactive)
   ;; For c-like languages
@@ -211,7 +215,7 @@ Otherwise call `aai-indent-forward'."
     (save-excursion
       (forward-char)
       (aai-indent-line-maybe))
-    (return-from aai-newline-and-indent))
+    (cl-return-from aai-newline-and-indent))
   (when (region-active-p)
     (delete-region (point) (mark))
     (deactivate-mark))
@@ -233,11 +237,17 @@ Otherwise call `aai-indent-forward'."
   (when aai-mode
     (setq aai--change-flag t)))
 
-(defun* aai-post-command-hook ()
+(defun aai-on-timer (marker)
+  (save-excursion
+    (set-buffer (marker-buffer marker))
+    (goto-char (marker-position marker))
+    (funcall aai-indent-function))
+  (setq aai-timer))
+
+(cl-defun aai-post-command-hook ()
   "Correct the cursor, and possibly indent."
-  (when (or (not aai-mode)
-            cua--rectangle)
-    (return-from aai-post-command-hook))
+  (when (or (not aai-mode) cua--rectangle)
+    (cl-return-from aai-post-command-hook))
   (let* (( last-input-structural
            (member last-input-event
                    (mapcar 'string-to-char
@@ -256,25 +266,32 @@ Otherwise call `aai-indent-forward'."
                              (bound-and-true-p multiple-cursors-mode))
                  (> (es-indentation-end-pos) (point)))
         (cond ( (memq this-command '(backward-char left-char))
-                (forward-line -1)
+               (forward-line -1)
                 (goto-char (line-end-position)))
               ( (memq this-command
                       '(forward-char right-char
                         previous-line next-line))
-                (back-to-indentation))))
+               (back-to-indentation))))
       ;; It won't indent if corrected
-      (when (and aai-after-change-indentation
-                 aai--change-flag
-                 (buffer-modified-p)
-                 (or first-keystroke
-                     (not (memq this-command
-                                (append '(save-buffer
-                                          undo
-                                          undo-tree-undo
-                                          undo-tree-redo)
-                                        aai-dont-indent-commands)))))
-        (funcall aai-indent-function)
-        (aai-correct-position-this)))
+      (cond ( (and aai-after-change-indentation
+                   aai--change-flag
+                   ;; (buffer-modified-p)
+                   (or first-keystroke
+                       (not (memq this-command
+                                  (append '(save-buffer
+                                            undo
+                                            undo-tree-undo
+                                            undo-tree-redo)
+                                          aai-dont-indent-commands)))))
+             (funcall aai-indent-function)
+              (aai-correct-position-this))
+            ( (and aai-after-change-indentation
+                   aai--change-flag)
+             (when aai-timer
+               (cancel-timer aai-timer))
+              (setq aai-timer
+                    (run-with-idle-timer
+                     1 nil `(lambda () (aai-on-timer ,(point-marker))))))))
     (setq aai--change-flag nil)))
 
 (defun aai--major-mode-setup ()
