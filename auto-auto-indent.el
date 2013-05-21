@@ -275,7 +275,7 @@ Otherwise call `aai-indent-forward'."
       ;; It won't indent if corrected
       (cond ( (and aai-after-change-indentation
                    aai--change-flag
-                   ;; (buffer-modified-p)
+                   (buffer-modified-p) ; Don't indent in unmodified buffers
                    (or first-keystroke
                        (not (memq this-command
                                   (append '(save-buffer
@@ -286,7 +286,8 @@ Otherwise call `aai-indent-forward'."
               (funcall aai-indent-function)
               (aai-correct-position-this))
             ( (and aai-after-change-indentation
-                   aai--change-flag)
+                   aai--change-flag
+                   (buffer-modified-p))
               (when aai-timer
                 (cancel-timer aai-timer))
               (setq aai-timer
