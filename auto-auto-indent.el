@@ -85,7 +85,7 @@ All indentation happends through this function."
 (cl-defun aai--indent-region (start end)
   "Indent region lines where `aai-indentable-line-p-function' returns non-nil."
   (save-excursion
-    (let ((end-line (line-number-at-pos end)))
+    (let (( end-line (line-number-at-pos end)))
       (goto-char start)
       (while (<= (line-number-at-pos) end-line)
         (aai-indent-line-maybe)
@@ -118,7 +118,7 @@ Otherwise call `aai-indent-forward'."
    (when (region-active-p)
      (delete-region (point) (mark))
      (deactivate-mark))
-   (let ((starting-point (point))
+   (let (( starting-point (point))
          end-distance
          line)
      (yank)
@@ -136,7 +136,7 @@ Otherwise call `aai-indent-forward'."
      (goto-char (max (es-indentation-end-pos)
                      (- (line-end-position) end-distance)))
      (when (derived-mode-p 'comint-mode)
-       (let ((point (point)))
+       (let (( point (point)))
          (skip-chars-backward " \t\n" starting-point)
          (delete-region (point) point)))
      (set-marker (mark-marker) starting-point (current-buffer)))))
@@ -144,8 +144,8 @@ Otherwise call `aai-indent-forward'."
 (defun aai-mouse-yank (event &optional dont-indent)
   (interactive "e")
   (if (region-active-p)
-      (let ((reg-beg (region-beginning))
-            (reg-end (region-end)))
+      (let (( reg-beg (region-beginning))
+            ( reg-end (region-end)))
         (mouse-set-point event)
         (when (and (<= reg-beg (point))
                    (<= (point) reg-end))
@@ -163,7 +163,7 @@ Otherwise call `aai-indent-forward'."
 (defun aai-delete-char (&optional from-backspace)
   "Like `delete-char', but deletes indentation, if point is at it, or before it."
   (interactive)
-  (if (region-active-p)
+  (if (use-region-p)
       (delete-region (point) (mark))
       (if (>= (point) (es-visible-end-of-line))
           (progn
@@ -177,7 +177,7 @@ Otherwise call `aai-indent-forward'."
 (defun aai-backspace ()
   "Like `backward-delete-char', but removes the resulting gap when point is at EOL."
   (interactive)
-  (cond ( (region-active-p)
+  (cond ( (use-region-p)
           (delete-region (point) (mark)))
         ( (es-point-between-pairs-p)
           (delete-char 1)
@@ -228,7 +228,7 @@ Otherwise call `aai-indent-forward'."
 
 (defun aai-correct-position-this ()
   "Go back to indentation if point is before indentation."
-  (let ((indentation-beginning (es-indentation-end-pos)))
+  (let (( indentation-beginning (es-indentation-end-pos)))
     (when (< (point) indentation-beginning)
       (goto-char indentation-beginning))))
 
@@ -266,12 +266,12 @@ Otherwise call `aai-indent-forward'."
                              (bound-and-true-p multiple-cursors-mode))
                  (> (es-indentation-end-pos) (point)))
         (cond ( (memq this-command '(backward-char left-char))
-               (forward-line -1)
+                (forward-line -1)
                 (goto-char (line-end-position)))
               ( (memq this-command
                       '(forward-char right-char
                         previous-line next-line))
-               (back-to-indentation))))
+                (back-to-indentation))))
       ;; It won't indent if corrected
       (cond ( (and aai-after-change-indentation
                    aai--change-flag
@@ -283,12 +283,12 @@ Otherwise call `aai-indent-forward'."
                                             undo-tree-undo
                                             undo-tree-redo)
                                           aai-dont-indent-commands)))))
-             (funcall aai-indent-function)
+              (funcall aai-indent-function)
               (aai-correct-position-this))
             ( (and aai-after-change-indentation
                    aai--change-flag)
-             (when aai-timer
-               (cancel-timer aai-timer))
+              (when aai-timer
+                (cancel-timer aai-timer))
               (setq aai-timer
                     (run-with-idle-timer
                      1 nil `(lambda () (aai-on-timer ,(point-marker))))))))
