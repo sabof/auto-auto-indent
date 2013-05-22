@@ -238,10 +238,11 @@ Otherwise call `aai-indent-forward'."
     (setq aai--change-flag t)))
 
 (defun aai-on-timer (marker)
-  (save-excursion
-    (set-buffer (marker-buffer marker))
-    (goto-char (marker-position marker))
-    (funcall aai-indent-function))
+  (when (buffer-modified-p)
+    (save-excursion
+      (set-buffer (marker-buffer marker))
+      (goto-char (marker-position marker))
+      (funcall aai-indent-function)))
   (setq aai-timer))
 
 (cl-defun aai-post-command-hook ()
@@ -286,14 +287,13 @@ Otherwise call `aai-indent-forward'."
               (funcall aai-indent-function)
               (aai-correct-position-this))
             ( (and aai-after-change-indentation
-                   aai--change-flag
-                   (buffer-modified-p))
+                   aai--change-flag)
               (when aai-timer
                 (cancel-timer aai-timer))
               (setq aai-timer
                     (run-with-idle-timer
                      1 nil `(lambda () (aai-on-timer ,(point-marker))))))))
-    (setq aai--change-flag nil)))
+    (setq aai--change-flag)))
 
 (defun aai--major-mode-setup ()
   "Optimizations for speicfic modes"
