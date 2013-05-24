@@ -115,7 +115,7 @@ Otherwise call `aai-indent-forward'."
 (defun aai-indented-yank (&optional dont-indent)
   (interactive)
   (es-silence-messages
-   (when (region-active-p)
+   (when (use-region-p)
      (delete-region (point) (mark))
      (deactivate-mark))
    (let (( starting-point (point))
@@ -143,7 +143,7 @@ Otherwise call `aai-indent-forward'."
 
 (defun aai-mouse-yank (event &optional dont-indent)
   (interactive "e")
-  (if (region-active-p)
+  (if (use-region-p)
       (let (( reg-beg (region-beginning))
             ( reg-end (region-end)))
         (mouse-set-point event)
@@ -205,7 +205,7 @@ Otherwise call `aai-indent-forward'."
   ;; This function won't run when cua--region-map is active
   (interactive)
   ;; For c-like languages
-  (when (and (not (region-active-p))
+  (when (and (not (use-region-p))
              (equal (char-before) ?{ )
              (equal (char-after) ?} ))
     (newline)
@@ -216,7 +216,7 @@ Otherwise call `aai-indent-forward'."
       (forward-char)
       (aai-indent-line-maybe))
     (cl-return-from aai-newline-and-indent))
-  (when (region-active-p)
+  (when (use-region-p)
     (delete-region (point) (mark))
     (deactivate-mark))
   (newline)
@@ -258,7 +258,7 @@ Otherwise call `aai-indent-forward'."
                 (or last-input-structural
                     (not (eq last-command 'self-insert-command))))))
     ;; Correct position
-    (when (or (not (region-active-p))
+    (when (or (not (use-region-p))
               deactivate-mark
               ;; (= (region-beginning)
               ;;    (region-end))
