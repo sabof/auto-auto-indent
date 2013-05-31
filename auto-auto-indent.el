@@ -52,10 +52,10 @@ Useful when you want to keep the keymap and cursor repositioning.")
     self-insert-command)
   "Commands after which not to indent.")
 (defvar aai-mode-hook nil)
-(defvar aai-timer nil)
-(defvar aai-timer-delay nil
-  "When set to a number, indent after this ammout of time, after a sequence of
-self-insert commands.")
+(defvar aai--timer nil)
+(defvar aai-timer-delay 0.5
+  "Indent after this ammout of second, following a sequence of self-insert commands.
+Don't indent when nil")
 
 (es-define-buffer-local-vars
  aai--change-flag nil)
@@ -132,7 +132,7 @@ Otherwise call `aai-indent-forward'."
      ;; (when (and (bound-and-true-p font-lock-mode)
      ;;            (memq major-mode '(web-mode)))
      ;;   (font-lock-fontify-region starting-point (point)))
-     (goto-line line)
+     (es-goto-line-prog line)
      (goto-char (max (es-indentation-end-pos)
                      (- (line-end-position) end-distance)))
      (when (derived-mode-p 'comint-mode)
@@ -243,7 +243,7 @@ Otherwise call `aai-indent-forward'."
       (set-buffer (marker-buffer marker))
       (goto-char (marker-position marker))
       (funcall aai-indent-function)))
-  (setq aai-timer))
+  (setq aai--timer))
 
 (cl-defun aai-post-command-hook ()
   "Correct the cursor, and possibly indent."
@@ -288,11 +288,13 @@ Otherwise call `aai-indent-forward'."
               (aai-correct-position-this))
             ( (and aai-after-change-indentation
                    aai--change-flag)
-              (when aai-timer
-                (cancel-timer aai-timer))
-              (setq aai-timer
-                    (run-with-idle-timer
-                     1 nil `(lambda () (aai-on-timer ,(point-marker))))))))
+              (when aai--timer
+                (cancel-timer aai--timer))
+              (when aai-timer-delay
+                (setq aai--timer
+                      (run-with-idle-timer
+                       aai-timer-delay nil
+                       `(lambda () (aai-on-timer ,(point-marker)))))))))
     (setq aai--change-flag)))
 
 (defun aai--major-mode-setup ()
@@ -310,15 +312,15 @@ Otherwise call `aai-indent-forward'."
     '(pushnew 'aai-mode mc/unsupported-minor-modes))
   (eval-after-load 'paredit
     '(es-define-keys auto-auto-indent-mode-map
-      [remap paredit-forward-delete] 'aai-delete-char
-      [remap paredit-backward-delete] 'aai-backspace))
+       [remap paredit-forward-delete] 'aai-delete-char
+       [remap paredit-backward-delete] 'aai-backspace))
   (eval-after-load 'cua-base
     '(define-key cua--region-keymap [remap delete-char]
-      (lambda ()
-        (interactive)
-        (if aai-mode
-            (aai-delete-char)
-            (cua-delete-region)))))
+       (lambda ()
+         (interactive)
+         (if aai-mode
+             (aai-delete-char)
+             (cua-delete-region)))))
   (eval-after-load 'eldoc
     '(eldoc-add-command 'aai-indented-yank)))
 
