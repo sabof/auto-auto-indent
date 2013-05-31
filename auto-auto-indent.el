@@ -239,10 +239,11 @@ Otherwise call `aai-indent-forward'."
 
 (defun aai-on-timer (marker)
   (when (buffer-modified-p)
-    (save-excursion
-      (set-buffer (marker-buffer marker))
-      (goto-char (marker-position marker))
-      (funcall aai-indent-function)))
+    (with-no-warnings
+      (save-excursion
+        (set-buffer (marker-buffer marker))
+        (goto-char (marker-position marker))
+        (funcall aai-indent-function))))
   (setq aai--timer))
 
 (cl-defun aai-post-command-hook ()
