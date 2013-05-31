@@ -77,11 +77,6 @@ All indentation happends through this function."
              (aai-indent-line-maybe)
              (forward-line))))
 
-(defun aai-widened-linum (&optional pos)
-  (save-restriction
-    (widen)
-    (line-number-at-pos pos)))
-
 (cl-defun aai--indent-region (start end)
   "Indent region lines where `aai-indentable-line-p-function' returns non-nil."
   (save-excursion
@@ -115,31 +110,31 @@ Otherwise call `aai-indent-forward'."
 (defun aai-indented-yank (&optional dont-indent)
   (interactive)
   (es-silence-messages
-   (when (use-region-p)
-     (delete-region (point) (mark))
-     (deactivate-mark))
-   (let (( starting-point (point))
-         end-distance
-         line)
-     (yank)
-     (setq end-distance (- (line-end-position) (point))
-           line (aai-widened-linum))
-     (unless (or dont-indent
-                 (> (- (point) starting-point)
-                    aai-indented-yank-limit))
-       (aai--indent-region starting-point (point)))
-     ;; Necessary for web-mode. Possibly others
-     ;; (when (and (bound-and-true-p font-lock-mode)
-     ;;            (memq major-mode '(web-mode)))
-     ;;   (font-lock-fontify-region starting-point (point)))
-     (es-goto-line-prog line)
-     (goto-char (max (es-indentation-end-pos)
-                     (- (line-end-position) end-distance)))
-     (when (derived-mode-p 'comint-mode)
-       (let (( point (point)))
-         (skip-chars-backward " \t\n" starting-point)
-         (delete-region (point) point)))
-     (set-marker (mark-marker) starting-point (current-buffer)))))
+    (when (use-region-p)
+      (delete-region (point) (mark))
+      (deactivate-mark))
+    (let (( starting-point (point))
+          end-distance
+          line)
+      (yank)
+      (setq end-distance (- (line-end-position) (point))
+            line (line-number-at-pos))
+      (unless (or dont-indent
+                  (> (- (point) starting-point)
+                     aai-indented-yank-limit))
+        (aai--indent-region starting-point (point)))
+      ;; Necessary for web-mode. Possibly others
+      ;; (when (and (bound-and-true-p font-lock-mode)
+      ;;            (memq major-mode '(web-mode)))
+      ;;   (font-lock-fontify-region starting-point (point)))
+      (es-goto-line-prog line)
+      (goto-char (max (es-indentation-end-pos)
+                      (- (line-end-position) end-distance)))
+      (when (derived-mode-p 'comint-mode)
+        (let (( point (point)))
+          (skip-chars-backward " \t\n" starting-point)
+          (delete-region (point) point)))
+      (set-marker (mark-marker) starting-point (current-buffer)))))
 
 (defun aai-mouse-yank (event &optional dont-indent)
   (interactive "e")
