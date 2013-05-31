@@ -248,7 +248,7 @@ Otherwise call `aai-indent-forward'."
 
 (cl-defun aai-post-command-hook ()
   "Correct the cursor, and possibly indent."
-  (when (or (not aai-mode) cua--rectangle)
+  (when (or (not aai-mode) (bound-and-true-p cua--rectangle))
     (cl-return-from aai-post-command-hook))
   (let* (( last-input-structural
            (member last-input-event
@@ -271,8 +271,10 @@ Otherwise call `aai-indent-forward'."
                 (forward-line -1)
                 (goto-char (line-end-position)))
               ( (memq this-command
-                      '(forward-char right-char
-                        previous-line next-line))
+                      '(forward-char
+                        right-char
+                        previous-line
+                        next-line))
                 (back-to-indentation))))
       ;; It won't indent if corrected
       (cond ( (and aai-after-change-indentation
