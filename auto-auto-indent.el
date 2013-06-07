@@ -289,14 +289,18 @@ Otherwise call `aai-indent-forward'."
                    (aai-correct-position-this))
                  ( (and aai-after-change-indentation
                         aai--change-flag
-                        (not (memq this-command dont-indent-commands)))
+                        (not (memq this-command
+                                   (remove
+                                    'self-insert-command
+                                    dont-indent-commands))))
                    (when aai--timer
                      (cancel-timer aai--timer))
                    (when aai-timer-delay
                      (setq aai--timer
                            (run-with-idle-timer
                             aai-timer-delay nil
-                            `(lambda () (aai-on-timer ,(point-marker)))))))))
+                            `(lambda () (aai-on-timer ,(point-marker))))))
+                   )))
          (setq aai--change-flag)))
     (error (when aai-debug
              (debug nil error)))))
