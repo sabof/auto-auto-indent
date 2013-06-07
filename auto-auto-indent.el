@@ -2,7 +2,7 @@
 ;;; Version: 0.1
 ;;; Author: sabof
 ;;; URL: https://github.com/sabof/auto-auto-indent
-;;; Package-Requires: ((es-lib "0.1"))
+;;; Package-Requires: ((es-lib "0.1") (cl-lib "1.0"))
 
 ;;; Commentary:
 
@@ -30,8 +30,8 @@
 
 ;;; Code:
 
-(require 'es-lib)
 (require 'cl-lib)
+(require 'es-lib)
 
 (defvar aai-indent-function 'aai-indent-line-maybe
   "Indentation function to use call for automatic indentation.")
@@ -56,7 +56,7 @@ Useful when you want to keep the keymap and cursor repositioning.")
 (defvar aai-timer-delay 0.5
   "Indent after this ammout of second, following a sequence of self-insert commands.
 Don't indent when nil")
-
+(defvar aai-debug nil)
 (es-define-buffer-local-vars
  aai--change-flag nil)
 
@@ -243,57 +243,63 @@ Otherwise call `aai-indent-forward'."
 
 (cl-defun aai-post-command-hook ()
   "Correct the cursor, and possibly indent."
-  (when (or (not aai-mode) (bound-and-true-p cua--rectangle))
-    (cl-return-from aai-post-command-hook))
-  (let* (( last-input-structural
-           (member last-input-event
-                   (mapcar 'string-to-char
-                           (list "(" ")" "[" "]" "{" "}" "," ";" " "))))
-         ( first-keystroke
-           (and (eq this-command 'self-insert-command)
-                (or last-input-structural
-                    (not (eq last-command 'self-insert-command))))))
-    ;; Correct position
-    (when (or (not (use-region-p))
-              deactivate-mark
-              ;; (= (region-beginning)
-              ;;    (region-end))
-              )
-      (when (and (es-neither (bound-and-true-p cua--rectangle)
-                             (bound-and-true-p multiple-cursors-mode))
-                 (> (es-indentation-end-pos) (point)))
-        (cond ( (memq this-command '(backward-char left-char))
-                (forward-line -1)
-                (goto-char (line-end-position)))
-              ( (memq this-command
-                      '(forward-char
-                        right-char
-                        previous-line
-                        next-line))
-                (back-to-indentation))))
-      ;; It won't indent if corrected
-      (cond ( (and aai-after-change-indentation
-                   aai--change-flag
-                   (buffer-modified-p) ; Don't indent in unmodified buffers
-                   (or first-keystroke
-                       (not (memq this-command
-                                  (append '(save-buffer
-                                            undo
-                                            undo-tree-undo
-                                            undo-tree-redo)
-                                          aai-dont-indent-commands)))))
-              (funcall aai-indent-function)
-              (aai-correct-position-this))
-            ( (and aai-after-change-indentation
-                   aai--change-flag)
-              (when aai--timer
-                (cancel-timer aai--timer))
-              (when aai-timer-delay
-                (setq aai--timer
-                      (run-with-idle-timer
-                       aai-timer-delay nil
-                       `(lambda () (aai-on-timer ,(point-marker)))))))))
-    (setq aai--change-flag)))
+  (condition-case error
+      (progn
+       (when (or (not aai-mode) (bound-and-true-p cua--rectangle))
+         (cl-return-from aai-post-command-hook))
+       (let* (( last-input-structural
+                (member last-input-event
+                        (mapcar 'string-to-char
+                                (list "(" ")" "[" "]" "{" "}" "," ";" " "))))
+              ( first-keystroke
+                (and (eq this-command 'self-insert-command)
+                     (or last-input-structural
+                         (not (eq last-command 'self-insert-command)))))
+              ( dont-indent-commands
+                (append '(save-buffer
+                          undo
+                          undo-tree-undo
+                          undo-tree-redo)
+                        aai-dont-indent-commands)))
+         ;; Correct position
+         (when (or (not (region-active-p))
+                   deactivate-mark
+                   ;; (= (region-beginning)
+                   ;;    (region-end))
+                   )
+           (when (and (es-neither (bound-and-true-p cua--rectangle)
+                                  (bound-and-true-p multiple-cursors-mode))
+                      (> (es-indentation-end-pos) (point)))
+             (cond ( (memq this-command '(backward-char left-char))
+                     (forward-line -1)
+                     (goto-char (line-end-position)))
+                   ( (memq this-command
+                           '(forward-char
+                             right-char
+                             previous-line
+                             next-line))
+                     (back-to-indentation))))
+           ;; It won't indent if corrected
+           (cond ( (and aai-after-change-indentation
+                        aai--change-flag
+                        (buffer-modified-p) ; Don't indent in unmodified buffers
+                        (or first-keystroke
+                            (not (memq this-command dont-indent-commands))))
+                   (funcall aai-indent-function)
+                   (aai-correct-position-this))
+                 ( (and aai-after-change-indentation
+                        aai--change-flag
+                        (not (memq this-command dont-indent-commands)))
+                   (when aai--timer
+                     (cancel-timer aai--timer))
+                   (when aai-timer-delay
+                     (setq aai--timer
+                           (run-with-idle-timer
+                            aai-timer-delay nil
+                            `(lambda () (aai-on-timer ,(point-marker)))))))))
+         (setq aai--change-flag)))
+    (error (when aai-debug
+             (debug nil error)))))
 
 (defun aai--major-mode-setup ()
   "Optimizations for speicfic modes"
