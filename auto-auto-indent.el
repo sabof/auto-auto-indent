@@ -107,7 +107,7 @@ Otherwise call `aai-indent-forward'."
           (aai--indent-region init-pos end-pos))
       (error (aai-indent-forward)))))
 
-(defun aai-indented-yank (&optional dont-indent)
+(cl-defun aai-indented-yank (&optional dont-indent)
   (interactive)
   (es-silence-messages
     (when (use-region-p)
@@ -123,7 +123,7 @@ Otherwise call `aai-indent-forward'."
                   (> (- (point) starting-point)
                      aai-indented-yank-limit))
         (aai--indent-region starting-point (point)))
-      ;; Necessary for web-mode. Possibly others
+      ;; ;; Necessary for web-mode. Possibly others
       ;; (when (and (bound-and-true-p font-lock-mode)
       ;;            (memq major-mode '(web-mode)))
       ;;   (font-lock-fontify-region starting-point (point)))
@@ -167,7 +167,8 @@ Otherwise call `aai-indent-forward'."
                        (not from-backspace))
               (backward-char)))
           (delete-char 1))
-      (aai-indent-line-maybe)))
+      ;; (aai-indent-line-maybe)
+      ))
 
 (defun aai-backspace ()
   "Like `backward-delete-char', but removes the resulting gap when point is at EOL."
@@ -201,8 +202,8 @@ Otherwise call `aai-indent-forward'."
   (interactive)
   ;; For c-like languages
   (when (and (not (use-region-p))
-             (equal (char-before) ?{ )
-             (equal (char-after) ?} ))
+             (member (char-before) '( ?{ ?\( ?\[ ))
+             (member (char-after) '( ?} ?\) ?\] )))
     (newline)
     (save-excursion
       (newline))
@@ -336,7 +337,7 @@ Otherwise call `aai-indent-forward'."
   (run-hooks 'aai-mode-hook)
   (add-hook 'post-command-hook 'aai-post-command-hook t t)
   (pushnew 'aai-before-change-function before-change-functions)
-  (when cua-mode
+  (when (eq (key-binding (kbd "C-v")) 'cua-paste)
     (es-define-keys auto-auto-indent-mode-map
       (kbd "C-v") 'aai-indented-yank))
   (es-define-keys auto-auto-indent-mode-map
