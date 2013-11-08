@@ -123,7 +123,7 @@ Otherwise call `aai-indent-forward'."
                   (> (- (point) starting-point)
                      aai-indented-yank-limit))
         (aai--indent-region starting-point (point)))
-      ;; Necessary for web-mode. Possibly others
+      ;; ;; Necessary for web-mode. Possibly others
       ;; (when (and (bound-and-true-p font-lock-mode)
       ;;            (memq major-mode '(web-mode)))
       ;;   (font-lock-fontify-region starting-point (point)))
@@ -167,7 +167,8 @@ Otherwise call `aai-indent-forward'."
                        (not from-backspace))
               (backward-char)))
           (delete-char 1))
-      (aai-indent-line-maybe)))
+      ;; (aai-indent-line-maybe)
+      ))
 
 (defun aai-backspace ()
   "Like `backward-delete-char', but removes the resulting gap when point is at EOL."
@@ -201,8 +202,8 @@ Otherwise call `aai-indent-forward'."
   (interactive)
   ;; For c-like languages
   (when (and (not (use-region-p))
-             (equal (char-before) ?{ )
-             (equal (char-after) ?} ))
+             (member (char-before) '( ?{ ?\( ?\[ ))
+             (member (char-after) '( ?} ?\) ?\] )))
     (newline)
     (save-excursion
       (newline))
