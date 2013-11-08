@@ -66,6 +66,9 @@ All indentation happends through this function."
   (when (and aai-mode
              (not (memq indent-line-function
                         '(insert-tab indent-relative)))
+             (save-excursion
+               (goto-char (line-beginning-position))
+               (not (in-string-p)))
              (funcall aai-indentable-line-p-function))
     (ignore-errors
       (indent-according-to-mode))))
