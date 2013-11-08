@@ -163,15 +163,15 @@ Otherwise call `aai-indent-forward'."
   (interactive)
   (if (use-region-p)
       (delete-region (point) (mark))
-      (if (>= (point) (es-visible-end-of-line))
-          (progn
-            (delete-region (point) (1+ (line-end-position)))
-            (when (and (es-fixup-whitespace)
-                       (not from-backspace))
-              (backward-char)))
-          (delete-char 1))
-      ;; (aai-indent-line-maybe)
-      ))
+    (if (>= (point) (es-visible-end-of-line))
+        (progn
+          (delete-region (point) (1+ (line-end-position)))
+          (when (and (es-fixup-whitespace)
+                     (not from-backspace))
+            (backward-char)))
+      (delete-char 1))
+    ;; (aai-indent-line-maybe)
+    ))
 
 (defun aai-backspace ()
   "Like `backward-delete-char', but removes the resulting gap when point is at EOL."
