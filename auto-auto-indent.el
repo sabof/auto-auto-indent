@@ -107,7 +107,7 @@ Otherwise call `aai-indent-forward'."
           (aai--indent-region init-pos end-pos))
       (error (aai-indent-forward)))))
 
-(defun aai-indented-yank (&optional dont-indent)
+(cl-defun aai-indented-yank (&optional dont-indent)
   (interactive)
   (es-silence-messages
     (when (use-region-p)
@@ -337,7 +337,7 @@ Otherwise call `aai-indent-forward'."
   (run-hooks 'aai-mode-hook)
   (add-hook 'post-command-hook 'aai-post-command-hook t t)
   (pushnew 'aai-before-change-function before-change-functions)
-  (when cua-mode
+  (when (eq (key-binding (kbd "C-v")) 'cua-paste)
     (es-define-keys auto-auto-indent-mode-map
       (kbd "C-v") 'aai-indented-yank))
   (es-define-keys auto-auto-indent-mode-map
