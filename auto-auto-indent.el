@@ -64,6 +64,8 @@ Don't indent when nil")
   "\(indent-according-to-mode\) when `aai-indentable-line-p-function' returns non-nil.
 All indentation happends through this function."
   (when (and aai-mode
+             ;; FIXME: There should be a public function for this
+             (not (yas--snippets-at-point))
              (not (memq indent-line-function
                         '(insert-tab indent-relative)))
              (save-excursion
@@ -149,9 +151,9 @@ Otherwise call `aai-indent-forward'."
                    (<= (point) reg-end))
           (delete-region reg-beg reg-end)
           (goto-char reg-beg)))
-      (progn
-        (mouse-set-point event)
-        (deactivate-mark)))
+    (progn
+      (mouse-set-point event)
+      (deactivate-mark)))
   (aai-indented-yank dont-indent))
 
 (defun aai-mouse-yank-dont-indent (event)
@@ -200,9 +202,9 @@ Otherwise call `aai-indent-forward'."
     (aai-indent-line-maybe))
   (aai-indent-line-maybe))
 
-(cl-defun aai-newline-and-indent ()
+(cl-defun aai-newline-and-indent (&optional arg)
   ;; This function won't run when cua--region-map is active
-  (interactive)
+  (interactive "p")
   ;; For c-like languages
   (when (and (not (use-region-p))
              (member (char-before) '( ?{ ?\( ?\[ ))
@@ -218,8 +220,10 @@ Otherwise call `aai-indent-forward'."
   (when (use-region-p)
     (delete-region (point) (mark))
     (deactivate-mark))
-  (newline)
-  (aai-indent-line-maybe)
+  (cl-loop repeat (or (abs arg) 1)
+           do (progn
+                (newline)
+                (aai-indent-line-maybe)))
   (when (memq major-mode '(nxml-mode web-mode))
     (save-excursion
       (forward-line -1)
@@ -249,63 +253,63 @@ Otherwise call `aai-indent-forward'."
   "Correct the cursor, and possibly indent."
   (condition-case error
       (progn
-       (when (or (not aai-mode) (bound-and-true-p cua--rectangle))
-         (cl-return-from aai-post-command-hook))
-       (let* (( last-input-structural
-                (member last-input-event
-                        (mapcar 'string-to-char
-                                (list "(" ")" "[" "]" "{" "}" "," ";" " "))))
-              ( first-keystroke
-                (and (eq this-command 'self-insert-command)
-                     (or last-input-structural
-                         (not (eq last-command 'self-insert-command)))))
-              ( dont-indent-commands
-                (append '(save-buffer
-                          undo
-                          undo-tree-undo
-                          undo-tree-redo)
-                        aai-dont-indent-commands)))
-         ;; Correct position
-         (when (or (not (region-active-p))
-                   deactivate-mark
-                   ;; (= (region-beginning)
-                   ;;    (region-end))
-                   )
-           (when (and (es-neither (bound-and-true-p cua--rectangle)
-                                  (bound-and-true-p multiple-cursors-mode))
-                      (> (es-indentation-end-pos) (point)))
-             (cond ( (memq this-command '(backward-char left-char))
-                     (forward-line -1)
-                     (goto-char (line-end-position)))
-                   ( (memq this-command
-                           '(forward-char
-                             right-char
-                             previous-line
-                             next-line))
-                     (back-to-indentation))))
-           ;; It won't indent if corrected
-           (cond ( (and aai-after-change-indentation
-                        aai--change-flag
-                        (buffer-modified-p) ; Don't indent in unmodified buffers
-                        (or first-keystroke
-                            (not (memq this-command dont-indent-commands))))
-                   (funcall aai-indent-function)
-                   (aai-correct-position-this))
-                 ( (and aai-after-change-indentation
-                        aai--change-flag
-                        (not (memq this-command
-                                   (remove
-                                    'self-insert-command
-                                    dont-indent-commands))))
-                   (when aai--timer
-                     (cancel-timer aai--timer))
-                   (when aai-timer-delay
-                     (setq aai--timer
-                           (run-with-idle-timer
-                            aai-timer-delay nil
-                            `(lambda () (aai-on-timer ,(point-marker))))))
-                   )))
-         (setq aai--change-flag)))
+        (when (or (not aai-mode) (bound-and-true-p cua--rectangle))
+          (cl-return-from aai-post-command-hook))
+        (let* (( last-input-structural
+                 (member last-input-event
+                         (mapcar 'string-to-char
+                                 (list "(" ")" "[" "]" "{" "}" "," ";" " "))))
+               ( first-keystroke
+                 (and (eq this-command 'self-insert-command)
+                      (or last-input-structural
+                          (not (eq last-command 'self-insert-command)))))
+               ( dont-indent-commands
+                 (append '(save-buffer
+                           undo
+                           undo-tree-undo
+                           undo-tree-redo)
+                         aai-dont-indent-commands)))
+          ;; Correct position
+          (when (or (not (region-active-p))
+                    deactivate-mark
+                    ;; (= (region-beginning)
+                    ;;    (region-end))
+                    )
+            (when (and (es-neither (bound-and-true-p cua--rectangle)
+                                   (bound-and-true-p multiple-cursors-mode))
+                       (> (es-indentation-end-pos) (point)))
+              (cond ( (memq this-command '(backward-char left-char))
+                      (forward-line -1)
+                      (goto-char (line-end-position)))
+                    ( (memq this-command
+                            '(forward-char
+                              right-char
+                              previous-line
+                              next-line))
+                      (back-to-indentation))))
+            ;; It won't indent if corrected
+            (cond ( (and aai-after-change-indentation
+                         aai--change-flag
+                         (buffer-modified-p) ; Don't indent in unmodified buffers
+                         (or first-keystroke
+                             (not (memq this-command dont-indent-commands))))
+                    (funcall aai-indent-function)
+                    (aai-correct-position-this))
+                  ( (and aai-after-change-indentation
+                         aai--change-flag
+                         (not (memq this-command
+                                    (remove
+                                     'self-insert-command
+                                     dont-indent-commands))))
+                    (when aai--timer
+                      (cancel-timer aai--timer))
+                    (when aai-timer-delay
+                      (setq aai--timer
+                            (run-with-idle-timer
+                             aai-timer-delay nil
+                             `(lambda () (aai-on-timer ,(point-marker))))))
+                    )))
+          (setq aai--change-flag)))
     (error (when aai-debug
              (debug nil error)))))
 
@@ -324,15 +328,15 @@ Otherwise call `aai-indent-forward'."
     '(pushnew 'aai-mode mc/unsupported-minor-modes))
   (eval-after-load 'paredit
     '(es-define-keys auto-auto-indent-mode-map
-       [remap paredit-forward-delete] 'aai-delete-char
-       [remap paredit-backward-delete] 'aai-backspace))
+      [remap paredit-forward-delete] 'aai-delete-char
+      [remap paredit-backward-delete] 'aai-backspace))
   (eval-after-load 'cua-base
     '(define-key cua--region-keymap [remap delete-char]
-       (lambda ()
-         (interactive)
-         (if aai-mode
-             (aai-delete-char)
-             (cua-delete-region)))))
+      (lambda ()
+        (interactive)
+        (if aai-mode
+            (aai-delete-char)
+          (cua-delete-region)))))
   (eval-after-load 'eldoc
     '(eldoc-add-command 'aai-indented-yank)))
 
