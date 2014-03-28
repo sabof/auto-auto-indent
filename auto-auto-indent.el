@@ -192,15 +192,16 @@ Otherwise call `aai-indent-forward'."
           (paredit-backward-delete))
         ( t (backward-delete-char 1))))
 
-(defun aai-open-line ()
+(cl-defun aai-open-line (arg)
   "Open line, and indent the following."
-  (interactive)
-  (save-excursion
-    (newline))
-  (save-excursion
-    (forward-char)
-    (aai-indent-line-maybe))
-  (aai-indent-line-maybe))
+  (interactive "p")
+  (cl-loop repeat arg do
+           (save-excursion
+             (newline))
+           (save-excursion
+             (forward-char)
+             (aai-indent-line-maybe))
+           (aai-indent-line-maybe)))
 
 (cl-defun aai-newline-and-indent (&optional arg)
   ;; This function won't run when cua--region-map is active
@@ -220,10 +221,9 @@ Otherwise call `aai-indent-forward'."
   (when (use-region-p)
     (delete-region (point) (mark))
     (deactivate-mark))
-  (cl-loop repeat (or (abs arg) 1)
-           do (progn
-                (newline)
-                (aai-indent-line-maybe)))
+  (cl-loop repeat arg do
+           (newline)
+           (aai-indent-line-maybe))
   (when (memq major-mode '(nxml-mode web-mode))
     (save-excursion
       (forward-line -1)
